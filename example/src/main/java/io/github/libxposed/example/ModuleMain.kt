@@ -4,6 +4,7 @@ import android.util.Log
 import io.github.libxposed.api.XposedInterface
 import io.github.libxposed.api.XposedModule
 import io.github.libxposed.api.XposedModuleInterface
+import java.io.FileReader
 
 class ModuleMain : XposedModule {
     companion object {
@@ -23,33 +24,39 @@ class ModuleMain : XposedModule {
     override fun onModuleLoaded(param: XposedModuleInterface.ModuleLoadedParam) {
         log("onModuleLoaded: ${param.processName}")
         log("framework: $frameworkName($frameworkVersion)")
+        log("----------")
     }
 
     override fun onPackageLoaded(param: XposedModuleInterface.PackageLoadedParam) {
         log("onPackageLoaded: ${param.packageName}")
         log("default classloader is ${param.defaultClassLoader}")
-        log("----------")
 
         if (!param.isFirstPackage) return
 
         val prefs = getRemotePreferences("test")
-        log("remote prefs: " + prefs.getInt("test", -1))
+        log("remote prefs: ${prefs.getInt("test", -1)}")
         prefs.registerOnSharedPreferenceChangeListener { _, key ->
             val value = prefs.getInt(key, 0)
             log("onSharedPreferenceChanged: $key->$value")
         }
 
-//        try {
-//            val text = openRemoteFile("test.txt").use {
-//                FileReader(it.fileDescriptor).readText()
-//            }
-//            log("remote file content: $text")
-//        } catch (_: FileNotFoundException) {
-//            log("remote file not found")
-//        }
+        log("remote files: ${listRemoteFiles().joinToString()}")
+
+        runCatching {
+            openRemoteFile("test.txt").use {
+                FileReader(it.fileDescriptor).readText()
+            }
+        }.onSuccess {
+            log("remote file content: $it")
+        }.onFailure {
+            log("remote file not found")
+        }
+
+        log("----------")
     }
 
     override fun onSystemServerLoaded(param: XposedModuleInterface.SystemServerLoadedParam) {
         log("onSystemServerLoaded: ${param.classLoader}")
+        log("----------")
     }
 }
