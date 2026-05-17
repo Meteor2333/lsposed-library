@@ -19,7 +19,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "lsposed-lib"
+rootProject.name = "lsposed-library"
 include(":lsposed-api")
 project(":lsposed-api").projectDir = file("api")
 include(":lsposed-service")
