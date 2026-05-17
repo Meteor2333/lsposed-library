@@ -22,7 +22,7 @@ class MainActivity : Activity() {
                     "onApproved: $packageName",
                     Toast.LENGTH_SHORT
                 ).show()
-                binding.scope.text = "Scopes: " + XposedService.getScopes()
+                refreshScopes()
             }
         }
 
@@ -33,7 +33,7 @@ class MainActivity : Activity() {
                     "onFailed: $message",
                     Toast.LENGTH_SHORT
                 ).show()
-                binding.scope.text = "Scopes: " + XposedService.getScopes()
+                refreshScopes()
             }
         }
     }
@@ -42,12 +42,13 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        binding.binder.text = "Binder acquired"
-        binding.api.text = "API " + XposedService.getApiVersion()
-        binding.framework.text = "Framework " + XposedService.getFrameworkName()
-        binding.frameworkVersion.text = "Framework version " + XposedService.getFrameworkVersion()
-        binding.frameworkVersionCode.text = "Framework version code " + XposedService.getFrameworkVersionCode()
-        binding.scope.text = "Scopes: " + XposedService.getScopes()
+        binding.binderStatus.text = "Binder status: ${if (XposedService.isAvailable()) "Available" else "Unavailable"}"
+        binding.apiVersion.text = "API version: ${runCatching { XposedService.getApiVersion() }.getOrDefault("unknown")}"
+        binding.frameworkName.text = "Framework name: ${runCatching { XposedService.getFrameworkName() }.getOrDefault("unknown")}"
+        binding.frameworkVersion.text = "Framework version: ${runCatching { XposedService.getFrameworkVersion() }.getOrDefault("unknown")}"
+        binding.frameworkVersionCode.text = "Framework version code: ${runCatching { XposedService.getFrameworkVersionCode() }.getOrDefault("unknown")}"
+        refreshScopes()
+
         binding.requestScope.setOnClickListener {
             XposedService.requestScope("com.android.settings", mCallback)
         }
@@ -55,15 +56,39 @@ class MainActivity : Activity() {
             val prefs = XposedService.getRemotePreferences("test")
             val old = prefs.getInt("test", -1)
             val new = Random.nextInt()
-            Toast.makeText(this@MainActivity, "$old -> $new", Toast.LENGTH_SHORT).show()
-            prefs.edit()?.putInt("test", new)?.apply()
+            Toast.makeText(
+                this@MainActivity,
+                "$old -> $new",
+                Toast.LENGTH_SHORT
+            ).show()
+            prefs.edit().putInt("test", new).apply()
         }
         binding.remoteFile.setOnClickListener {
-            XposedService.openRemoteFile("test.txt").use { pfd ->
-                FileWriter(pfd.fileDescriptor).use {
-                    it.append("Hello World!")
+            runCatching {
+                XposedService.openRemoteFile("test.txt").use { pfd ->
+                    FileWriter(pfd.fileDescriptor).use {
+                        it.append("Hello World!")
+                    }
                 }
+            }.onSuccess {
+                Toast.makeText(
+                    this@MainActivity,
+                    "Success",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }.onFailure {
+                Toast.makeText(
+                    this@MainActivity,
+                    "Failure",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
+    }
+
+    private fun refreshScopes() {
+        binding.scopes.text = "Scopes: ${runCatching {
+            XposedService.getScopes().joinToString("\n", "\n")
+        }.getOrDefault("unknown")}"
     }
 }

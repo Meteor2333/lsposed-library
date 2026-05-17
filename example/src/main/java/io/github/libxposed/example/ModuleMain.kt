@@ -14,13 +14,13 @@ class ModuleMain : XposedModule() {
     }
 
     override fun onModuleLoaded(param: XposedModuleInterface.ModuleLoadedParam) {
-        log("onModuleLoaded: " + param.processName)
-        log("framework: $frameworkName($frameworkVersionCode)")
+        log("onModuleLoaded: ${param.processName}")
+        log("framework: $frameworkName($frameworkVersion)")
     }
 
     override fun onPackageLoaded(param: XposedModuleInterface.PackageLoadedParam) {
-        log("onPackageLoaded: " + param.packageName)
-        log("default classloader is " + param.defaultClassLoader)
+        log("onPackageLoaded: ${param.packageName}")
+        log("default classloader is ${param.defaultClassLoader}")
         log("----------")
 
         if (!param.isFirstPackage) return
@@ -43,6 +43,6 @@ class ModuleMain : XposedModule() {
     }
 
     override fun onSystemServerLoaded(param: XposedModuleInterface.SystemServerLoadedParam) {
-        log("onSystemServerStarting, system classloader: " + param.classLoader)
+        log("onSystemServerLoaded: ${param.classLoader}")
     }
 }
