@@ -200,7 +200,7 @@ public final class XposedService {
      * @throws UnsupportedOperationException If the framework does not have remote capability
      */
     @NonNull
-    public static String[] listRemoteFiles() {
+    public static String[] getRemoteFiles() {
         return callService(30, XposedService::nothing, Parcel::createStringArray, 0);
     }
 
