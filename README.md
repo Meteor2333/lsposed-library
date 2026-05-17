@@ -1,4 +1,4 @@
-# lsposed-lib
+# lsposed-library
 
 [![Android Min SDK](https://img.shields.io/badge/minSdk-24-orange)](https://developer.android.com/about/versions/oreo)
 [![License](https://img.shields.io/github/license/Meteor2333/lsposed-lib)](LICENSE)
