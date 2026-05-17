@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -34,6 +35,10 @@ android {
         abortOnError = true
         checkReleaseBuilds = false
     }
+}
+
+kotlin {
+    jvmToolchain(21)
 }
 
 dependencies {
