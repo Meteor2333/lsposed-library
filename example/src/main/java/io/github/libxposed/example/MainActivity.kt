@@ -59,22 +59,31 @@ class MainActivity : Activity() {
         binding.frameworkVersion.text = "Framework version: ${runCatching { XposedService.getFrameworkVersion() }.getOrDefault("unknown")}"
         binding.frameworkVersionCode.text = "Framework version code: ${runCatching { XposedService.getFrameworkVersionCode() }.getOrDefault("unknown")}"
         refreshScopes()
+        refreshRemoteFiles()
 
         binding.requestScope.setOnClickListener {
             XposedService.requestScope("com.android.settings", mCallback)
+            refreshScopes()
+        }
+        binding.removeScope.setOnClickListener {
+            XposedService.removeScope("com.android.settings")
+            refreshScopes()
         }
         binding.randomPrefs.setOnClickListener {
             val prefs = XposedService.getRemotePreferences("test")
             val old = prefs.getInt("test", -1)
             val new = Random.nextInt()
+            prefs.edit().putInt("test", new).apply()
             Toast.makeText(
                 this@MainActivity,
                 "$old -> $new",
                 Toast.LENGTH_SHORT
             ).show()
-            prefs.edit().putInt("test", new).apply()
         }
-        binding.remoteFile.setOnClickListener {
+        binding.deletePrefs.setOnClickListener {
+            XposedService.deleteRemotePreferences("test")
+        }
+        binding.writeRemoteFile.setOnClickListener {
             runCatching {
                 XposedService.openRemoteFile("test.txt").use { pfd ->
                     FileWriter(pfd.fileDescriptor).use {
@@ -94,12 +103,23 @@ class MainActivity : Activity() {
                     Toast.LENGTH_SHORT
                 ).show()
             }
+            refreshRemoteFiles()
+        }
+        binding.deleteRemoteFile.setOnClickListener {
+            XposedService.deleteRemoteFile("test.txt")
+            refreshRemoteFiles()
         }
     }
 
     private fun refreshScopes() {
         binding.scopes.text = "Scopes: ${runCatching {
             XposedService.getScopes().joinToString("\n", "\n")
+        }.getOrDefault("unknown")}"
+    }
+
+    private fun refreshRemoteFiles() {
+        binding.remoteFiles.text = "RemoteFiles: ${runCatching {
+            XposedService.getRemoteFiles().joinToString("\n", "\n")
         }.getOrDefault("unknown")}"
     }
 }
