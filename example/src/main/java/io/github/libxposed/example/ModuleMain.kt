@@ -1,16 +1,23 @@
 package io.github.libxposed.example
 
 import android.util.Log
+import io.github.libxposed.api.XposedInterface
 import io.github.libxposed.api.XposedModule
 import io.github.libxposed.api.XposedModuleInterface
 
-class ModuleMain : XposedModule() {
+class ModuleMain : XposedModule {
     companion object {
         const val TAG = "XposedExample"
 
         private fun log(msg: String) {
             Log.i(TAG, msg)
         }
+    }
+
+    constructor() : super()
+
+    constructor(base: XposedInterface, param: XposedModuleInterface.ModuleLoadedParam) : super(base, param) {
+        onModuleLoaded(param)
     }
 
     override fun onModuleLoaded(param: XposedModuleInterface.ModuleLoadedParam) {
