@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.agp.app)
+    alias(libs.plugins.android.application)
 }
 
 android {
@@ -12,15 +12,6 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles("proguard-rules.pro")
-            signingConfig = signingConfigs["debug"]
-        }
     }
 
     buildFeatures {
@@ -46,6 +37,6 @@ android {
 }
 
 dependencies {
-    compileOnly(libs.libxposed.api)
-    implementation(libs.libxposed.service)
+    compileOnly(project(":lsposed-api"))
+    implementation(project(":lsposed-service"))
 }
