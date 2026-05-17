@@ -1,179 +1,93 @@
 package io.github.libxposed.service;
 
 import android.content.SharedPreferences;
-import android.os.ParcelFileDescriptor;
-import android.os.RemoteException;
+import android.os.*;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-@SuppressWarnings("unused")
+import io.github.libxposed.service.callback.ScopeEventCallback;
+import io.github.libxposed.service.exception.ServiceException;
+
 public final class XposedService {
-    /**
-     * The framework has the capability to hook system_server and other system processes.
-     */
-    public static final long PROP_CAP_SYSTEM = IXposedService.PROP_CAP_SYSTEM;
+    private static final String TAG = "XposedService";
 
-    /**
-     * The framework provides remote preferences and remote files support.
-     */
-    public static final long PROP_CAP_REMOTE = IXposedService.PROP_CAP_REMOTE;
+    private static IBinder mBinder = null;
+    private static final Map<String, SharedPreferences> mPrefs = new HashMap<>();
 
-    /**
-     * The framework disallows accessing Xposed API via reflection or dynamically loaded code.
-     */
-    public static final long PROP_RT_API_PROTECTION = IXposedService.PROP_RT_API_PROTECTION;
-
-    public static final class ServiceException extends RuntimeException {
-        ServiceException(String message) {
-            super(message);
-        }
-
-        ServiceException(RemoteException e) {
-            super("Xposed service error", e);
+    static void registerBinder(IBinder binder) {
+        try {
+            mBinder = binder;
+            binder.linkToDeath(() -> mBinder = null, 0);
+        } catch (Throwable t) {
+            Log.e(TAG, "registerBinder", t);
         }
     }
 
-    private static final Map<OnScopeEventListener, IXposedScopeCallback> scopeCallbacks = new ConcurrentHashMap<>();
-
     /**
-     * Callback interface for module scope request.
+     * Check if the Xposed service is available.
+     *
+     * @return True if the service is alive and can be called, false otherwise
      */
-    public interface OnScopeEventListener {
-        /**
-         * Callback when the request is approved.
-         *
-         * @param approved Approved packages for the request
-         */
-        default void onScopeRequestApproved(@NonNull List<String> approved) {
-        }
-
-        /**
-         * Callback when the request is failed.
-         *
-         * @param message Error message
-         */
-        default void onScopeRequestFailed(@NonNull String message) {
-        }
-
-        private IXposedScopeCallback asInterface() {
-            return scopeCallbacks.computeIfAbsent(this, (listener) -> new IXposedScopeCallback.Stub() {
-                @Override
-                public void onScopeRequestApproved(List<String> approved) {
-                    listener.onScopeRequestApproved(approved);
-                    scopeCallbacks.remove(listener);
-                }
-
-                @Override
-                public void onScopeRequestFailed(String message) {
-                    listener.onScopeRequestFailed(message);
-                    scopeCallbacks.remove(listener);
-                }
-            });
-        }
-    }
-
-    private final IXposedService mService;
-    private final Map<String, RemotePreferences> mRemotePrefs = new HashMap<>();
-
-    XposedService(IXposedService service) {
-        mService = service;
-    }
-
-    IXposedService asInterface() {
-        return mService;
+    public static boolean isAvailable() {
+        return mBinder != null;
     }
 
     /**
      * Get the Xposed API version of current implementation.
      *
      * @return API version
-     * @throws ServiceException If the service is dead or an error occurred
+     * @throws ServiceException If the service is dead or error occurred
      */
-    public int getApiVersion() {
-        try {
-            return mService.getApiVersion();
-        } catch (RemoteException e) {
-            throw new ServiceException(e);
-        }
+    public static int getApiVersion() {
+        return callService(1, XposedService::nothing, Parcel::readInt, 0);
     }
 
     /**
      * Get the Xposed framework name of current implementation.
      *
      * @return Framework name
-     * @throws ServiceException If the service is dead or an error occurred
+     * @throws ServiceException If the service is dead or error occurred
      */
     @NonNull
-    public String getFrameworkName() {
-        try {
-            return mService.getFrameworkName();
-        } catch (RemoteException e) {
-            throw new ServiceException(e);
-        }
+    public static String getFrameworkName() {
+        return callService(2, XposedService::nothing, Parcel::readString, 0);
     }
 
     /**
      * Get the Xposed framework version of current implementation.
      *
      * @return Framework version
-     * @throws ServiceException If the service is dead or an error occurred
+     * @throws ServiceException If the service is dead or error occurred
      */
     @NonNull
-    public String getFrameworkVersion() {
-        try {
-            return mService.getFrameworkVersion();
-        } catch (RemoteException e) {
-            throw new ServiceException(e);
-        }
+    public static String getFrameworkVersion() {
+        return callService(3, XposedService::nothing, Parcel::readString, 0);
     }
 
     /**
      * Get the Xposed framework version code of current implementation.
      *
      * @return Framework version code
-     * @throws ServiceException If the service is dead or an error occurred
+     * @throws ServiceException If the service is dead or error occurred
      */
-    public long getFrameworkVersionCode() {
-        try {
-            return mService.getFrameworkVersionCode();
-        } catch (RemoteException e) {
-            throw new ServiceException(e);
-        }
+    public static long getFrameworkVersionCode() {
+        return callService(4, XposedService::nothing, Parcel::readLong, 0);
     }
 
     /**
-     * Gets the Xposed framework properties.
-     * Properties with prefix PROP_RT_ may change among launches.
+     * Get the application scopes of current module.
      *
-     * @return Framework properties
-     * @throws ServiceException If the service is dead or an error occurred
-     */
-    public long getFrameworkProperties() {
-        try {
-            return mService.getFrameworkProperties();
-        } catch (RemoteException e) {
-            throw new ServiceException(e);
-        }
-    }
-
-    /**
-     * Get the application scope of current module.
-     *
-     * @return Module scope
-     * @throws ServiceException If the service is dead or an error occurred
+     * @return Module scopes
+     * @throws ServiceException If the service is dead or error occurred
      */
     @NonNull
-    public List<String> getScope() {
-        try {
-            return mService.getScope();
-        } catch (RemoteException e) {
-            throw new ServiceException(e);
-        }
+    public static List<String> getScopes() {
+        return callService(10, XposedService::nothing, Parcel::createStringArrayList, 0);
     }
 
     /**
@@ -183,12 +97,21 @@ public final class XposedService {
      * @param callback Callback to be invoked when the request is completed or error occurred
      * @throws ServiceException If the service is dead or an error occurred
      */
-    public void requestScope(@NonNull List<String> packages, @NonNull OnScopeEventListener callback) {
-        try {
-            mService.requestScope(packages, callback.asInterface());
-        } catch (RemoteException e) {
-            throw new ServiceException(e);
+    public static void requestScope(@NonNull String packages, @NonNull ScopeEventCallback callback) {
+        Consumer<Parcel> writer;
+        if (getApiVersion() > 100) {
+            writer = data -> {
+                data.writeStringList(Collections.singletonList(packages));
+                data.writeStrongInterface(callback);
+            };
+        } else {
+            writer = data -> {
+                data.writeString(packages);
+                data.writeStrongInterface(callback);
+            };
         }
+
+        callService(11, writer, Function.identity(), IBinder.FLAG_ONEWAY);
     }
 
     /**
@@ -197,65 +120,76 @@ public final class XposedService {
      * @param packages Packages to be removed
      * @throws ServiceException If the service is dead or an error occurred
      */
-    public void removeScope(@NonNull List<String> packages) {
-        try {
-            mService.removeScope(packages);
-        } catch (RemoteException e) {
-            throw new ServiceException(e);
+    public static void removeScope(@NonNull String packages) {
+        Consumer<Parcel> writer;
+        if (getApiVersion() > 100) {
+            writer = data -> data.writeStringList(Collections.singletonList(packages));
+        } else {
+            writer = data -> data.writeString(packages);
         }
+
+        callService(12, writer, Function.identity(), 0);
     }
 
-//    api 102 roadmap
-//    /**
-//     * Get a list of currently running processes that are hooked by the module. Note that one app may
-//     * have multiple processes, and you should use uid instead of processName to identify apps.
-//     *
-//     * @return The list of hooked processes
-//     * @throws ServiceException If the service is dead or an error occurred
-//     */
-//    @NonNull
-//    public List<HookedProcess> getRunningTargets()
-
     /**
-     * Get remote preferences from Xposed framework. If the group does not exist, it will be created.
+     * Get remote preferences from Xposed framework.
      *
      * @param group Group name
      * @return The preferences
-     * @throws ServiceException              If the service is dead or an error occurred
-     * @throws UnsupportedOperationException If the framework does not have remote capability
+     * @throws ServiceException If the service is dead or error occurred
      */
     @NonNull
-    public synchronized SharedPreferences getRemotePreferences(@NonNull String group) {
-        return mRemotePrefs.computeIfAbsent(group, k -> {
-            try {
-                return RemotePreferences.newInstance(this, k);
-            } catch (RemoteException e) {
-                if (e.getCause() instanceof UnsupportedOperationException cause) {
-                    throw cause;
-                }
-                throw new ServiceException(e);
-            }
+    public static SharedPreferences getRemotePreferences(@NonNull String group) {
+        return mPrefs.computeIfAbsent(group, k -> {
+            Bundle bundle = callService(
+                    20,
+                    data -> data.writeString(group),
+                    reply -> reply.readTypedObject(Bundle.CREATOR),
+                    0
+            );
+            @SuppressWarnings("unchecked")
+            Map<String, ?> map = (Map<String, ?>) bundle.getSerializable("map");
+            return new RemotePreferences(group, map);
         });
+    }
+
+    /**
+     * Update a group of remote preferences.
+     *
+     * @param group Group name
+     * @param editor Editor to be applied
+     * @throws ServiceException If the service is dead or error occurred
+     */
+    public static void updateRemotePreferences(@NonNull String group, @NonNull SharedPreferences.Editor editor) {
+        if (!(editor instanceof RemotePreferences.Editor remoteEditor)) return;
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("delete", new HashSet<>(remoteEditor.mDelete));
+        bundle.putSerializable("put", new HashMap<>(remoteEditor.mPut));
+        callService(
+                21,
+                data -> {
+                    data.writeString(group);
+                    data.writeTypedObject(bundle, 0);
+                },
+                Function.identity(),
+                0
+        );
     }
 
     /**
      * Delete a group of remote preferences.
      *
      * @param group Group name
-     * @throws ServiceException              If the service is dead or an error occurred
-     * @throws UnsupportedOperationException If the framework does not have remote capability
+     * @throws ServiceException If the service is dead or error occurred
      */
-    public synchronized void deleteRemotePreferences(@NonNull String group) {
-        try {
-            var prefs = mRemotePrefs.get(group);
-            if (prefs != null) prefs.onDelete();
-            mService.deleteRemotePreferences(group);
-        } catch (RemoteException e) {
-            if (e.getCause() instanceof UnsupportedOperationException cause) {
-                throw cause;
-            }
-            throw new ServiceException(e);
-        }
+    public static void deleteRemotePreferences(@NonNull String group) {
+        mPrefs.remove(group);
+        callService(
+                22,
+                data -> data.writeString(group),
+                Function.identity(),
+                0
+        );
     }
 
     /**
@@ -266,17 +200,8 @@ public final class XposedService {
      * @throws UnsupportedOperationException If the framework does not have remote capability
      */
     @NonNull
-    public String[] listRemoteFiles() {
-        try {
-            var files = mService.listRemoteFiles();
-            if (files == null) throw new ServiceException("Framework returns null");
-            return files;
-        } catch (RemoteException e) {
-            if (e.getCause() instanceof UnsupportedOperationException cause) {
-                throw cause;
-            }
-            throw new ServiceException(e);
-        }
+    public static String[] listRemoteFiles() {
+        return callService(30, XposedService::nothing, Parcel::createStringArray, 0);
     }
 
     /**
@@ -288,17 +213,13 @@ public final class XposedService {
      * @throws UnsupportedOperationException If the framework does not have remote capability
      */
     @NonNull
-    public ParcelFileDescriptor openRemoteFile(@NonNull String name) {
-        try {
-            var file = mService.openRemoteFile(name);
-            if (file == null) throw new ServiceException("Framework returns null");
-            return file;
-        } catch (RemoteException e) {
-            if (e.getCause() instanceof UnsupportedOperationException cause) {
-                throw cause;
-            }
-            throw new ServiceException(e);
-        }
+    public static ParcelFileDescriptor openRemoteFile(@NonNull String name) {
+        return callService(
+                31,
+                data -> data.writeString(name),
+                reply -> reply.readTypedObject(ParcelFileDescriptor.CREATOR),
+                0
+        );
     }
 
     /**
@@ -309,14 +230,36 @@ public final class XposedService {
      * @throws ServiceException              If the service is dead or an error occurred
      * @throws UnsupportedOperationException If the framework does not have remote capability
      */
-    public boolean deleteRemoteFile(@NonNull String name) {
+    public static boolean deleteRemoteFile(@NonNull String name) {
+        return callService(
+                32,
+                data -> data.writeString(name),
+                reply -> reply.readInt() != 0,
+                0
+        );
+    }
+
+    private static <T> T callService(int code, Consumer<Parcel> writer, Function<Parcel, T> reader, int flags) {
+        Parcel data = Parcel.obtain();
+        Parcel reply = Parcel.obtain();
         try {
-            return mService.deleteRemoteFile(name);
+            data.writeInterfaceToken(Constants.SERVICE_AIDL_DESCRIPTOR);
+            writer.accept(data);
+            mBinder.transact(code + 1, data, reply, flags);
+            reply.readException();
+            return reader.apply(reply);
         } catch (RemoteException e) {
-            if (e.getCause() instanceof UnsupportedOperationException cause) {
-                throw cause;
-            }
             throw new ServiceException(e);
+        } finally {
+            data.recycle();
+            reply.recycle();
         }
+    }
+
+    private static <T> void nothing(T t) {
+    }
+    
+    private XposedService() {
+        /* This class should not be instantiated */
     }
 }
