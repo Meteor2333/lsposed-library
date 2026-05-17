@@ -7,7 +7,6 @@ android {
     compileSdk = 36
     buildToolsVersion = "36.1.0"
     androidResources.enable = false
-    enableKotlin = false
 
     defaultConfig {
         minSdk = 24
