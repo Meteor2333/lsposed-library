@@ -15,6 +15,17 @@ class MainActivity : Activity() {
     private lateinit var binding: ActivityMainBinding
 
     private val mCallback = object : ScopeEventCallback() {
+        override fun onPrompted(packageName: String) {
+            runOnUiThread {
+                Toast.makeText(
+                    this@MainActivity,
+                    "onPrompted: $packageName",
+                    Toast.LENGTH_SHORT
+                ).show()
+                refreshScopes()
+            }
+        }
+
         override fun onApproved(packageName: String) {
             runOnUiThread {
                 Toast.makeText(

@@ -5,6 +5,7 @@ import android.os.*;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 
 import io.github.libxposed.service.Constants;
@@ -18,6 +19,10 @@ public class ScopeEventCallback implements IInterface {
     private static final int TRANSACTION_FAILED100 = 5 + 1;
 
     private final Binder mBinder = new Binder() {
+        {
+            attachInterface(ScopeEventCallback.this, Constants.SCOPE_CALLBACK_AIDL_DESCRIPTOR);
+        }
+
         @Override
         protected boolean onTransact(int code, @NonNull Parcel data, @Nullable Parcel reply, int flags) throws RemoteException {
             if (code >= FIRST_CALL_TRANSACTION && code <= LAST_CALL_TRANSACTION) {
@@ -32,31 +37,36 @@ public class ScopeEventCallback implements IInterface {
                     break;
                 }
                 case TRANSACTION_PROMPTED100_OR_APPROVED101: {
-                    if (XposedService.getApiVersion() > 100) {
+                    if (XposedService.getApiVersion() <= 100) {
+                        onPrompted(data.readString());
+                    } else {
                         List<String> packages = data.createStringArrayList();
-                        if (packages != null) {
-                            for (String approved : packages) {
-                                onApproved(approved);
-                            }
+                        if (packages == null) packages = Collections.emptyList();
+                        for (String approved : packages) {
+                            onApproved(approved);
                         }
                     }
                     break;
                 }
                 case TRANSACTION_APPROVED100_OR_FAILED101: {
-                    if (XposedService.getApiVersion() > 100) {
-                        onFailed(data.readString());
-                    } else {
+                    if (XposedService.getApiVersion() <= 100) {
                         onApproved(data.readString());
+                    } else {
+                        onFailed(data.readString());
                     }
                     break;
                 }
-                case TRANSACTION_DENIED100, TRANSACTION_TIMEOUT100: {
-                    onFailed(data.readString());
+                case TRANSACTION_DENIED100: {
+                    onFailed("Request denied by user: " + data.readString());
+                    break;
+                }
+                case TRANSACTION_TIMEOUT100: {
+                    onFailed("Request timeout: " + data.readString());
                     break;
                 }
                 case TRANSACTION_FAILED100: {
-                    data.readString();
-                    onFailed(data.readString());
+                    String packageName = data.readString();
+                    onFailed(data.readString() + ": " + packageName);
                     break;
                 }
                 default: {
@@ -71,6 +81,14 @@ public class ScopeEventCallback implements IInterface {
     @Override
     public IBinder asBinder() {
         return mBinder;
+    }
+
+    /**
+     * Callback when the request notification / window prompted.
+     *
+     * @param packageName Package name of requested app
+     */
+    public void onPrompted(String packageName) {
     }
 
     /**
