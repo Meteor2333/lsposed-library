@@ -16,33 +16,23 @@ class MainActivity : Activity() {
 
     private val mCallback = object : ScopeEventCallback() {
         override fun onPrompted(packageName: String) {
-            runOnUiThread {
-                Toast.makeText(
-                    this@MainActivity,
-                    "onPrompted: $packageName",
-                    Toast.LENGTH_SHORT
-                ).show()
-                refreshScopes()
-            }
+            onCallback("onPrompted\n$packageName")
         }
 
         override fun onApproved(packageName: String) {
-            runOnUiThread {
-                Toast.makeText(
-                    this@MainActivity,
-                    "onApproved: $packageName",
-                    Toast.LENGTH_SHORT
-                ).show()
-                refreshScopes()
-            }
+            onCallback("onApproved\n$packageName")
         }
 
         override fun onFailed(message: String) {
+            onCallback("onFailed\n$message")
+        }
+
+        private fun onCallback(message: String) {
             runOnUiThread {
                 Toast.makeText(
                     this@MainActivity,
-                    "onFailed: $message",
-                    Toast.LENGTH_SHORT
+                    message,
+                    Toast.LENGTH_LONG
                 ).show()
                 refreshScopes()
             }
@@ -62,51 +52,49 @@ class MainActivity : Activity() {
         refreshRemoteFiles()
 
         binding.requestScope.setOnClickListener {
-            XposedService.requestScope("com.android.settings", mCallback)
+            execute(false) {
+                XposedService.requestScope("com.android.settings", mCallback)
+            }
             refreshScopes()
         }
         binding.removeScope.setOnClickListener {
-            XposedService.removeScope("com.android.settings")
+            execute {
+                XposedService.removeScope("com.android.settings")
+            }
             refreshScopes()
         }
         binding.randomPrefs.setOnClickListener {
-            val prefs = XposedService.getRemotePreferences("test")
-            val old = prefs.getInt("test", -1)
-            val new = Random.nextInt()
-            prefs.edit().putInt("test", new).apply()
-            Toast.makeText(
-                this@MainActivity,
-                "$old -> $new",
-                Toast.LENGTH_SHORT
-            ).show()
+            execute(false) {
+                val prefs = XposedService.getRemotePreferences("test")
+                val old = prefs.getInt("test", -1)
+                val new = Random.nextInt()
+                prefs.edit().putInt("test", new).apply()
+                Toast.makeText(
+                    this@MainActivity,
+                    "$old -> $new",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
         binding.deletePrefs.setOnClickListener {
-            XposedService.deleteRemotePreferences("test")
+            execute {
+                XposedService.deleteRemotePreferences("test")
+            }
         }
         binding.writeRemoteFile.setOnClickListener {
-            runCatching {
+            execute {
                 XposedService.openRemoteFile("test.txt").use { pfd ->
                     FileWriter(pfd.fileDescriptor).use {
                         it.append("Hello World!")
                     }
                 }
-            }.onSuccess {
-                Toast.makeText(
-                    this@MainActivity,
-                    "Success",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }.onFailure {
-                Toast.makeText(
-                    this@MainActivity,
-                    "Failure",
-                    Toast.LENGTH_SHORT
-                ).show()
             }
             refreshRemoteFiles()
         }
         binding.deleteRemoteFile.setOnClickListener {
-            XposedService.deleteRemoteFile("test.txt")
+            execute {
+                XposedService.deleteRemoteFile("test.txt")
+            }
             refreshRemoteFiles()
         }
     }
@@ -121,5 +109,24 @@ class MainActivity : Activity() {
         binding.remoteFiles.text = "RemoteFiles: ${runCatching {
             XposedService.getRemoteFiles().joinToString("\n", "\n")
         }.getOrDefault("unknown")}"
+    }
+
+    private fun execute(showToast: Boolean = true, block: () -> Unit) {
+        runCatching {
+            block()
+        }.onSuccess {
+            if (!showToast) return
+            Toast.makeText(
+                this@MainActivity,
+                "Success",
+                Toast.LENGTH_SHORT
+            ).show()
+        }.onFailure {
+            Toast.makeText(
+                this@MainActivity,
+                "Failure",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 }
