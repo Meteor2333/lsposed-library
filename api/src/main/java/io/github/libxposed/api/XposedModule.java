@@ -3,7 +3,7 @@ package io.github.libxposed.api;
 import androidx.annotation.NonNull;
 
 /**
- * Super class which all Xposed module entry classes should extend.<br></br>
+ * Super class which all Xposed module entry classes should extend.<br/>
  * Entry classes will be instantiated exactly once for each process.
  */
 public abstract class XposedModule extends XposedInterfaceWrapper implements XposedModuleInterface {
