@@ -4,6 +4,9 @@ plugins {
     id("signing")
 }
 
+group = "cc.meteormc"
+version = "compat-1.0"
+
 android {
     namespace = "io.github.libxposed.service"
     compileSdk = 36
