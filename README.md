@@ -5,6 +5,24 @@
 
 由 [LSPosed](https://github.com/LSPosed) 开发者开发的 [现代化Xposed库](https://github.com/libxposed) 的兼容性版本
 
+## Integration
+
+### API
+
+```kotlin
+dependencies {
+    implementation("cc.meteormc:lsposed-api:compat-1.0")
+}
+```
+
+### Service
+
+```kotlin
+dependencies {
+    implementation("cc.meteormc:lsposed-service:compat-1.0")
+}
+```
+
 ## Related Projects
 
 - [libxposed/api](https://github.com/libxposed/api) — Modern Xposed Module API
