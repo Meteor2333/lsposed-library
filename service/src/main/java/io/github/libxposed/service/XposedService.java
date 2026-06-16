@@ -146,8 +146,8 @@ public final class XposedService {
      * @throws UnsupportedOperationException If the framework does not support service API 102
      * @throws ServiceException              If the service is dead or an error occurred
      */
-    @SinceApi(102)
     @NonNull
+    @SinceApi(102)
     public List<HookedTarget> getRunningTargets() {
         List<HookedProcess> processes = callService(
                 13,

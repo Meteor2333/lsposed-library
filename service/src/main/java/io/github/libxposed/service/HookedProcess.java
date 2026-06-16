@@ -4,9 +4,12 @@ import android.os.BadParcelableException;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import io.github.libxposed.annotation.SinceApi;
+
 /**
  * Information about a process currently hooked by this module.
  */
+@SinceApi(102)
 public class HookedProcess implements Parcelable {
     public static final Parcelable.Creator<HookedProcess> CREATOR = new Parcelable.Creator<>() {
         @Override

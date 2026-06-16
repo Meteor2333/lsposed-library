@@ -8,9 +8,13 @@ import androidx.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
+import io.github.libxposed.annotation.SinceApi;
 import io.github.libxposed.service.Constants;
 import io.github.libxposed.service.XposedService;
 
+/**
+ * Callback interface for module scope request.
+ */
 public class ScopeEventCallback implements IInterface {
     private static final int TRANSACTION_PROMPTED100_OR_APPROVED101 = 1 + 1;
     private static final int TRANSACTION_APPROVED100_OR_FAILED101 = 2 + 1;
