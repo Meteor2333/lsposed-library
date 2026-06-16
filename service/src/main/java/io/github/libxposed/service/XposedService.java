@@ -1,5 +1,6 @@
 package io.github.libxposed.service;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.*;
 import android.util.Log;
@@ -305,7 +306,14 @@ public final class XposedService {
      */
     @NonNull
     public static String[] getRemoteFiles() {
-        return callService(30, XposedService::nothing, Parcel::createStringArray, 0);
+        int code;
+        if (getApiVersion() > 100) {
+            code = 30;
+        } else {
+            code = 32;
+        }
+
+        return callService(code, XposedService::nothing, Parcel::createStringArray, 0);
     }
 
     /**
@@ -318,9 +326,20 @@ public final class XposedService {
      */
     @NonNull
     public static ParcelFileDescriptor openRemoteFile(@NonNull String name) {
+        int code;
+        if (getApiVersion() > 100) {
+            code = 31;
+        } else {
+            code = 30;
+        }
+
         return callService(
-                31,
-                data -> data.writeString(name),
+                code,
+                data -> {
+                    data.writeString(name);
+                    // for api100
+                    data.writeInt(Context.MODE_PRIVATE);
+                },
                 reply -> reply.readTypedObject(ParcelFileDescriptor.CREATOR),
                 0
         );
@@ -335,8 +354,15 @@ public final class XposedService {
      * @throws UnsupportedOperationException If the framework does not have remote capability
      */
     public static boolean deleteRemoteFile(@NonNull String name) {
+        int code;
+        if (getApiVersion() > 100) {
+            code = 32;
+        } else {
+            code = 31;
+        }
+
         return callService(
-                32,
+                code,
                 data -> data.writeString(name),
                 reply -> reply.readInt() != 0,
                 0
