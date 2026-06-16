@@ -1,6 +1,7 @@
 package io.github.libxposed.api;
 
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
 import android.os.ParcelFileDescriptor;
 
 import androidx.annotation.NonNull;
@@ -38,6 +39,25 @@ public interface XposedInterface {
     long getFrameworkVersionCode();
 
     /**
+     * Gets application info.
+     *
+     * @deprecated This method is not recommended to use.
+     * Although it exists, it was rarely implemented in official framework releases,
+     * so its lifecycle was very short.
+     * <p>Use {@link #getModuleApplicationInfo()} instead.
+     *
+     * @return the application info
+     */
+    @Deprecated
+    ApplicationInfo getApplicationInfo();
+
+    /**
+     * Gets the application info of the module.
+     */
+    @NonNull
+    ApplicationInfo getModuleApplicationInfo();
+
+    /**
      * Get shared preferences.
      *
      * @deprecated This method is not recommended to use.
@@ -59,6 +79,7 @@ public interface XposedInterface {
      * @return The preferences
      * @throws UnsupportedOperationException If the framework is embedded
      */
+    @NonNull
     SharedPreferences getRemotePreferences(String group);
 
     /**

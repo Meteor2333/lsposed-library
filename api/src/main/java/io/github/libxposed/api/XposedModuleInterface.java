@@ -105,8 +105,8 @@ public interface XposedModuleInterface {
         /**
          * Gets the {@link AppComponentFactory} of the current package.
          */
-        @RequiresApi(Build.VERSION_CODES.P)
         @NonNull
+        @RequiresApi(Build.VERSION_CODES.P)
         AppComponentFactory getAppComponentFactory();
     }
 

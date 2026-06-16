@@ -1,6 +1,7 @@
 package io.github.libxposed.api;
 
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
 import android.os.ParcelFileDescriptor;
 
 import androidx.annotation.NonNull;
@@ -35,10 +36,23 @@ public class XposedInterfaceWrapper implements XposedInterface {
 
     @Override
     @Deprecated
+    public ApplicationInfo getApplicationInfo() {
+        throw new UnsupportedOperationException();
+    }
+
+    @NonNull
+    @Override
+    public ApplicationInfo getModuleApplicationInfo() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    @Deprecated
     public SharedPreferences getSharedPreferences(String name, int mode) {
         throw new UnsupportedOperationException();
     }
 
+    @NonNull
     @Override
     public SharedPreferences getRemotePreferences(String group) {
         throw new UnsupportedOperationException();
