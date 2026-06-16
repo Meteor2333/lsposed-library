@@ -50,12 +50,33 @@
         android:textAppearance="?android:textAppearanceLarge" />
 
     <TextView
+        android:id="@+id/running_processes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:textAppearance="?android:textAppearanceLarge" />
+
+    <TextView
         android:id="@+id/remote_files"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:gravity="center"
         android:textAppearance="?android:textAppearanceLarge" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/hot_reload"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hot Reload"
+            tools:ignore="HardcodedText" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"

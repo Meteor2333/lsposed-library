@@ -1,5 +1,6 @@
 package io.github.libxposed.example
 
+import android.os.Build
 import android.util.Log
 import io.github.libxposed.api.XposedInterface
 import io.github.libxposed.api.XposedModule
@@ -27,20 +28,39 @@ class ModuleMain : XposedModule {
         log("----------")
     }
 
+    override fun onHotReloading(param: XposedModuleInterface.HotReloadingParam): Boolean {
+        log("onHotReloading")
+        param.setSavedInstanceState("Hello from last generation")
+        return true
+    }
+
+    override fun onHotReloaded(param: XposedModuleInterface.HotReloadedParam) {
+        log("onHotReloaded: ${param.processName}")
+        log("savedInstanceState: " + param.savedInstanceState)
+    }
+
     override fun onPackageLoaded(param: XposedModuleInterface.PackageLoadedParam) {
         log("onPackageLoaded: ${param.packageName}")
         log("default classloader is ${param.defaultClassLoader}")
+    }
+
+    override fun onPackageReady(param: XposedModuleInterface.PackageReadyParam) {
+        log("onPackageReady: " + param.packageName)
+        log("app classloader is " + param.classLoader)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            log("app acf is " + param.appComponentFactory)
+        }
+        log("module apk path: " + moduleApplicationInfo.sourceDir)
+        log("----------")
 
         if (!param.isFirstPackage) return
 
         val prefs = getRemotePreferences("test")
-        log("remote prefs: ${prefs.getInt("test", -1)}")
+        log("remote prefs: " + prefs.getInt("test", -1))
         prefs.registerOnSharedPreferenceChangeListener { _, key ->
             val value = prefs.getInt(key, 0)
             log("onSharedPreferenceChanged: $key->$value")
         }
-
-        log("remote files: ${listRemoteFiles().joinToString()}")
 
         runCatching {
             openRemoteFile("test.txt").use {
@@ -55,8 +75,8 @@ class ModuleMain : XposedModule {
         log("----------")
     }
 
-    override fun onSystemServerLoaded(param: XposedModuleInterface.SystemServerLoadedParam) {
-        log("onSystemServerLoaded: ${param.classLoader}")
+    override fun onSystemServerStarting(param: XposedModuleInterface.SystemServerStartingParam) {
+        log("onSystemServerStarting: ${param.classLoader}")
         log("----------")
     }
 }

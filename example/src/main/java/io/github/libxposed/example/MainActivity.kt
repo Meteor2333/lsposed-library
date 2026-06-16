@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.widget.Toast
 import io.github.libxposed.example.databinding.ActivityMainBinding
 import io.github.libxposed.service.XposedService
+import io.github.libxposed.service.callback.HotReloadCallback
 import io.github.libxposed.service.callback.ScopeEventCallback
 import java.io.FileWriter
 import kotlin.random.Random
@@ -14,7 +15,21 @@ import kotlin.random.Random
 class MainActivity : Activity() {
     private lateinit var binding: ActivityMainBinding
 
-    private val mCallback = object : ScopeEventCallback() {
+    private val mHotReloadCallback = if (XposedService.getApiVersion() >= 102) {
+        object : HotReloadCallback() {
+            override fun onResult(status: Status, message: String?) {
+                runOnUiThread {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "$status, $message",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    refreshRunningProcesses()
+                }
+            }
+        }
+    } else null
+    private val mScopeEventCallback = object : ScopeEventCallback() {
         override fun onPrompted(packageName: String) {
             onCallback("onPrompted\n$packageName")
         }
@@ -49,11 +64,26 @@ class MainActivity : Activity() {
         binding.frameworkVersion.text = "Framework version: ${runCatching { XposedService.getFrameworkVersion() }.getOrDefault("unknown")}"
         binding.frameworkVersionCode.text = "Framework version code: ${runCatching { XposedService.getFrameworkVersionCode() }.getOrDefault("unknown")}"
         refreshScopes()
+        refreshRunningProcesses()
         refreshRemoteFiles()
 
+        binding.hotReload.setOnClickListener {
+            if (XposedService.getApiVersion() < 102) {
+                Toast.makeText(
+                    this@MainActivity,
+                    "Hot reload is unavailable",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            XposedService.getRunningTargets().forEach {
+                XposedService.hotReloadModule(it, null, mHotReloadCallback!!)
+            }
+        }
         binding.requestScope.setOnClickListener {
             execute(false) {
-                XposedService.requestScope("com.android.settings", mCallback)
+                XposedService.requestScope("com.android.settings", mScopeEventCallback)
             }
             refreshScopes()
         }
@@ -102,6 +132,13 @@ class MainActivity : Activity() {
     private fun refreshScopes() {
         binding.scopes.text = "Scopes: ${runCatching {
             XposedService.getScopes().joinToString("\n", "\n")
+        }.getOrDefault("unknown")}"
+    }
+
+    private fun refreshRunningProcesses() {
+        binding.runningProcesses.text = "RunningProcesses: ${runCatching {
+            if (XposedService.getApiVersion() < 102) "unavailable"
+            else XposedService.getRunningTargets().joinToString("\n", "\n") { it.processName }
         }.getOrDefault("unknown")}"
     }
 
