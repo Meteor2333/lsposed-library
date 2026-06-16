@@ -10,7 +10,7 @@ version = "compat-1.0"
 android {
     namespace = "io.github.libxposed.api"
     compileSdk = 37
-    buildToolsVersion = "36.1.0"
+    buildToolsVersion = "37.0.0"
     androidResources.enable = false
 
     defaultConfig {

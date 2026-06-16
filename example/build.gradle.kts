@@ -5,7 +5,7 @@ plugins {
 android {
     namespace = "io.github.libxposed.example"
     compileSdk = 37
-    buildToolsVersion = "36.1.0"
+    buildToolsVersion = "37.0.0"
 
     defaultConfig {
         minSdk = 26
