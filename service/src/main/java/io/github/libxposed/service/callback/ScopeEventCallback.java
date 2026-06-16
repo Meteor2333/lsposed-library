@@ -8,7 +8,6 @@ import androidx.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-import io.github.libxposed.annotation.SinceApi;
 import io.github.libxposed.service.Constants;
 import io.github.libxposed.service.XposedService;
 
