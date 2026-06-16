@@ -67,4 +67,10 @@ public class XposedInterfaceWrapper implements XposedInterface {
     public ParcelFileDescriptor openRemoteFile(@NonNull String name) {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    @SinceApi(102)
+    public void detach() {
+        throw new UnsupportedOperationException();
+    }
 }
