@@ -8,10 +8,18 @@ import androidx.annotation.NonNull;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
+import io.github.libxposed.annotation.SinceApi;
+
 /**
  * Xposed interface for modules to operate on application processes.
  */
 public interface XposedInterface {
+    /**
+     * Gets the runtime Xposed API version. Framework implementations must <b>not</b> override this method.
+     */
+    @SinceApi(101)
+    int getApiVersion();
+
     /**
      * Gets the Xposed framework name of current implementation.
      */

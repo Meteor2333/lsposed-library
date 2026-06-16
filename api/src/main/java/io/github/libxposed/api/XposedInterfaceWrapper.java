@@ -7,7 +7,15 @@ import androidx.annotation.NonNull;
 
 import java.io.FileInputStream;
 
+import io.github.libxposed.annotation.SinceApi;
+
 public class XposedInterfaceWrapper implements XposedInterface {
+    @Override
+    @SinceApi(101)
+    public int getApiVersion() {
+        throw new UnsupportedOperationException();
+    }
+
     @NonNull
     @Override
     public String getFrameworkName() {
@@ -26,6 +34,7 @@ public class XposedInterfaceWrapper implements XposedInterface {
     }
 
     @Override
+    @Deprecated
     public SharedPreferences getSharedPreferences(String name, int mode) {
         throw new UnsupportedOperationException();
     }
@@ -36,6 +45,7 @@ public class XposedInterfaceWrapper implements XposedInterface {
     }
 
     @Override
+    @Deprecated
     public String[] fileList() {
         throw new UnsupportedOperationException();
     }
@@ -47,6 +57,7 @@ public class XposedInterfaceWrapper implements XposedInterface {
     }
 
     @Override
+    @Deprecated
     public FileInputStream openFileInput(String name) {
         throw new UnsupportedOperationException();
     }
