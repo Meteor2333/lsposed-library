@@ -9,7 +9,7 @@ version = "compat-1.0"
 
 android {
     namespace = "io.github.libxposed.service"
-    compileSdk = 36
+    compileSdk = 37
     buildToolsVersion = "36.1.0"
     androidResources.enable = false
 
@@ -34,7 +34,7 @@ android {
 }
 
 dependencies {
-    compileOnly(libs.annotation)
+    compileOnly(libs.android.annotation)
 }
 
 val androidJavadoc by tasks.registering(Javadoc::class) {
