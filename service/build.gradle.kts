@@ -35,6 +35,8 @@ android {
 
 dependencies {
     compileOnly(libs.android.annotation)
+    compileOnly(libs.libxposed.annotation)
+    lintPublish(libs.libxposed.lint)
 }
 
 val androidJavadoc by tasks.registering(Javadoc::class) {
