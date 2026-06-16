@@ -149,7 +149,7 @@ public final class XposedService {
      */
     @NonNull
     @SinceApi(102)
-    public List<HookedTarget> getRunningTargets() {
+    public static List<HookedTarget> getRunningTargets() {
         List<HookedProcess> processes = callService(
                 13,
                 XposedService::nothing,
@@ -223,7 +223,7 @@ public final class XposedService {
      * @throws SecurityException If the target is invalid or no longer belongs to this module
      */
     @SinceApi(102)
-    public void hotReloadModule(@NonNull HookedTarget target, @Nullable Bundle data, @NonNull HotReloadCallback callback) {
+    public static void hotReloadModule(@NonNull HookedTarget target, @Nullable Bundle data, @NonNull HotReloadCallback callback) {
         callService(
                 14,
                 datax -> {
