@@ -10,6 +10,7 @@ import java.util.List;
 
 import io.github.libxposed.service.Constants;
 import io.github.libxposed.service.XposedService;
+import io.github.libxposed.service.provider.XposedProvider;
 
 /**
  * Callback interface for module scope request.
@@ -32,6 +33,7 @@ public class ScopeEventCallback implements IInterface {
                 data.enforceInterface(Constants.SCOPE_CALLBACK_AIDL_DESCRIPTOR);
             }
 
+            XposedService service = XposedProvider.getService();
             switch (code) {
                 case INTERFACE_TRANSACTION: {
                     if (reply != null) {
@@ -40,7 +42,7 @@ public class ScopeEventCallback implements IInterface {
                     break;
                 }
                 case TRANSACTION_PROMPTED100_OR_APPROVED101: {
-                    if (XposedService.getApiVersion() <= 100) {
+                    if (service.getApiVersion() <= 100) {
                         onPrompted(data.readString());
                     } else {
                         List<String> packages = data.createStringArrayList();
@@ -52,7 +54,7 @@ public class ScopeEventCallback implements IInterface {
                     break;
                 }
                 case TRANSACTION_APPROVED100_OR_FAILED101: {
-                    if (XposedService.getApiVersion() <= 100) {
+                    if (service.getApiVersion() <= 100) {
                         onApproved(data.readString());
                     } else {
                         onFailed(data.readString());

@@ -3,7 +3,6 @@ package io.github.libxposed.service;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.*;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -12,6 +11,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import io.github.libxposed.annotation.InternalApi;
 import io.github.libxposed.annotation.SinceApi;
 import io.github.libxposed.service.callback.HotReloadCallback;
 import io.github.libxposed.service.callback.ScopeEventCallback;
@@ -20,24 +20,17 @@ import io.github.libxposed.service.exception.ServiceException;
 public final class XposedService {
     private static final String TAG = "XposedService";
 
-    private static IBinder mBinder = null;
-    private static final Map<String, SharedPreferences> mPrefs = new HashMap<>();
+    @InternalApi
+    public IBinder mBinder;
 
-    static void registerBinder(IBinder binder) {
-        try {
-            mBinder = binder;
-            binder.linkToDeath(() -> mBinder = null, 0);
-        } catch (Throwable t) {
-            Log.e(TAG, "registerBinder", t);
-        }
-    }
+    private final Map<String, SharedPreferences> mPrefs = new HashMap<>();
 
     /**
      * Check if the Xposed service is available.
      *
      * @return True if the service is alive and can be called, false otherwise
      */
-    public static boolean isAvailable() {
+    public boolean isAvailable() {
         return mBinder != null;
     }
 
@@ -47,7 +40,7 @@ public final class XposedService {
      * @return API version
      * @throws ServiceException If the service is dead or error occurred
      */
-    public static int getApiVersion() {
+    public int getApiVersion() {
         return callService(1, XposedService::nothing, Parcel::readInt, 0);
     }
 
@@ -58,7 +51,7 @@ public final class XposedService {
      * @throws ServiceException If the service is dead or error occurred
      */
     @NonNull
-    public static String getFrameworkName() {
+    public String getFrameworkName() {
         return callService(2, XposedService::nothing, Parcel::readString, 0);
     }
 
@@ -69,7 +62,7 @@ public final class XposedService {
      * @throws ServiceException If the service is dead or error occurred
      */
     @NonNull
-    public static String getFrameworkVersion() {
+    public String getFrameworkVersion() {
         return callService(3, XposedService::nothing, Parcel::readString, 0);
     }
 
@@ -79,7 +72,7 @@ public final class XposedService {
      * @return Framework version code
      * @throws ServiceException If the service is dead or error occurred
      */
-    public static long getFrameworkVersionCode() {
+    public long getFrameworkVersionCode() {
         return callService(4, XposedService::nothing, Parcel::readLong, 0);
     }
 
@@ -90,7 +83,7 @@ public final class XposedService {
      * @throws ServiceException If the service is dead or error occurred
      */
     @NonNull
-    public static List<String> getScopes() {
+    public List<String> getScopes() {
         return callService(10, XposedService::nothing, Parcel::createStringArrayList, 0);
     }
 
@@ -101,7 +94,7 @@ public final class XposedService {
      * @param callback Callback to be invoked when the request is completed or error occurred
      * @throws ServiceException If the service is dead or an error occurred
      */
-    public static void requestScope(@NonNull String packages, @NonNull ScopeEventCallback callback) {
+    public void requestScope(@NonNull String packages, @NonNull ScopeEventCallback callback) {
         Consumer<Parcel> writer;
         if (getApiVersion() > 100) {
             writer = data -> {
@@ -124,7 +117,7 @@ public final class XposedService {
      * @param packages Packages to be removed
      * @throws ServiceException If the service is dead or an error occurred
      */
-    public static void removeScope(@NonNull String packages) {
+    public void removeScope(@NonNull String packages) {
         Consumer<Parcel> writer;
         if (getApiVersion() > 100) {
             writer = data -> data.writeStringList(Collections.singletonList(packages));
@@ -149,7 +142,7 @@ public final class XposedService {
      */
     @NonNull
     @SinceApi(102)
-    public static List<HookedProcess> getRunningProcesses() {
+    public List<HookedProcess> getRunningProcesses() {
         return callService(
                 13,
                 XposedService::nothing,
@@ -191,7 +184,7 @@ public final class XposedService {
      * @throws SecurityException If the process is invalid or no longer belongs to this module
      */
     @SinceApi(102)
-    public static void hotReloadModule(@NonNull HookedProcess process, @Nullable Bundle data, @NonNull HotReloadCallback callback) {
+    public void hotReloadModule(@NonNull HookedProcess process, @Nullable Bundle data, @NonNull HotReloadCallback callback) {
         callService(
                 14,
                 datax -> {
@@ -212,7 +205,7 @@ public final class XposedService {
      * @throws ServiceException If the service is dead or error occurred
      */
     @NonNull
-    public static SharedPreferences getRemotePreferences(@NonNull String group) {
+    public SharedPreferences getRemotePreferences(@NonNull String group) {
         return mPrefs.computeIfAbsent(group, k -> {
             Bundle bundle = callService(
                     20,
@@ -233,7 +226,7 @@ public final class XposedService {
      * @param editor Editor to be applied
      * @throws ServiceException If the service is dead or error occurred
      */
-    public static void updateRemotePreferences(@NonNull String group, @NonNull SharedPreferences.Editor editor) {
+    public void updateRemotePreferences(@NonNull String group, @NonNull SharedPreferences.Editor editor) {
         if (!(editor instanceof RemotePreferences.Editor remoteEditor)) return;
         Bundle bundle = new Bundle();
         bundle.putSerializable("delete", new HashSet<>(remoteEditor.mDelete));
@@ -255,7 +248,7 @@ public final class XposedService {
      * @param group Group name
      * @throws ServiceException If the service is dead or error occurred
      */
-    public static void deleteRemotePreferences(@NonNull String group) {
+    public void deleteRemotePreferences(@NonNull String group) {
         mPrefs.remove(group);
         callService(
                 22,
@@ -273,7 +266,7 @@ public final class XposedService {
      * @throws UnsupportedOperationException If the framework does not have remote capability
      */
     @NonNull
-    public static String[] getRemoteFiles() {
+    public String[] getRemoteFiles() {
         int code;
         if (getApiVersion() > 100) {
             code = 30;
@@ -293,7 +286,7 @@ public final class XposedService {
      * @throws UnsupportedOperationException If the framework does not have remote capability
      */
     @NonNull
-    public static ParcelFileDescriptor openRemoteFile(@NonNull String name) {
+    public ParcelFileDescriptor openRemoteFile(@NonNull String name) {
         int code;
         if (getApiVersion() > 100) {
             code = 31;
@@ -321,7 +314,7 @@ public final class XposedService {
      * @throws ServiceException              If the service is dead or an error occurred
      * @throws UnsupportedOperationException If the framework does not have remote capability
      */
-    public static boolean deleteRemoteFile(@NonNull String name) {
+    public boolean deleteRemoteFile(@NonNull String name) {
         int code;
         if (getApiVersion() > 100) {
             code = 32;
@@ -337,7 +330,7 @@ public final class XposedService {
         );
     }
 
-    private static <T> T callService(int code, Consumer<Parcel> writer, Function<Parcel, T> reader, int flags) {
+    private <T> T callService(int code, Consumer<Parcel> writer, Function<Parcel, T> reader, int flags) {
         if (!isAvailable()) {
             throw new ServiceException("Xposed service is not available");
         }
@@ -359,9 +352,5 @@ public final class XposedService {
     }
 
     private static <T> void nothing(T t) {
-    }
-    
-    private XposedService() {
-        /* This class should not be instantiated */
     }
 }
