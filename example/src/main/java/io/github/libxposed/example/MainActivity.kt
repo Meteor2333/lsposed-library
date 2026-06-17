@@ -75,7 +75,7 @@ class MainActivity : Activity() {
                 return@setOnClickListener
             }
 
-            XposedService.getRunningTargets().forEach {
+            XposedService.getRunningProcesses().forEach {
                 XposedService.hotReloadModule(it, null, mHotReloadCallback)
             }
         }
@@ -136,7 +136,7 @@ class MainActivity : Activity() {
     private fun refreshRunningProcesses() {
         binding.runningProcesses.text = "RunningProcesses: ${runCatching {
             if (XposedService.getApiVersion() < 102) "unavailable"
-            else XposedService.getRunningTargets().joinToString("\n", "\n") { it.processName }
+            else XposedService.getRunningProcesses().joinToString("\n", "\n") { it.processName }
         }.getOrDefault("unknown")}"
     }
 

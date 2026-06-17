@@ -139,7 +139,7 @@ public final class XposedService {
      * Get a list of currently running processes that are hooked by the module.
      * <p>
      * Returned targets can be passed to
-     * {@link #hotReloadModule(HookedTarget, Bundle, HotReloadCallback)}. The pid, uid, process
+     * {@link #hotReloadModule(HookedProcess, Bundle, HotReloadCallback)}. The pid, uid, process
      * name, and loaded version code are diagnostic values only.
      * </p>
      *
@@ -149,50 +149,18 @@ public final class XposedService {
      */
     @NonNull
     @SinceApi(102)
-    public static List<HookedTarget> getRunningTargets() {
-        List<HookedProcess> processes = callService(
+    public static List<HookedProcess> getRunningProcesses() {
+        return callService(
                 13,
                 XposedService::nothing,
                 reply -> reply.createTypedArrayList(HookedProcess.CREATOR),
                 0
         );
-
-        if (processes == null) {
-            throw new ServiceException("Framework returns null");
-        }
-
-        List<HookedTarget> targets = new ArrayList<>(processes.size());
-        for (HookedProcess process : processes) {
-            if (process == null) {
-                throw new ServiceException("Framework returns null target");
-            }
-
-            if (process.processName == null) {
-                throw new ServiceException("Framework returns target with null processName");
-            }
-
-            int stateCode = process.state;
-            if (stateCode < 0 || stateCode >= HotReloadCallback.Status.values().length) {
-                throw new ServiceException("Invalid hooked target state: " + stateCode);
-            }
-
-            HookedTarget target = new HookedTarget(
-                    process.targetId,
-                    process.uid,
-                    process.pid,
-                    process.processName,
-                    HookedTarget.State.values()[stateCode],
-                    process.loadedVersionCode
-            );
-            targets.add(target);
-        }
-
-        return Collections.unmodifiableList(targets);
     }
 
     /**
      * Request hot reload for the module in the specified process. The process must be one of the
-     * targets returned by {@link #getRunningTargets()}.
+     * targets returned by {@link #getRunningProcesses()}.
      * <p>
      * This method only validates and submits the request. The actual reload result is delivered
      * asynchronously through {@code callback}. If the framework cannot provide a valid new module
@@ -216,22 +184,22 @@ public final class XposedService {
      * {@link android.os.Parcelable} or {@link java.io.Serializable} objects in this bundle.
      * </p>
      *
-     * @param target   The target process
+     * @param process   The target process
      * @param data     Optional data to be passed to the old module
      * @param callback Callback to be invoked when the request completes or fails
      * @throws ServiceException  If the service is dead or an error occurred
      * @throws SecurityException If the target is invalid or no longer belongs to this module
      */
     @SinceApi(102)
-    public static void hotReloadModule(@NonNull HookedTarget target, @Nullable Bundle data, @NonNull HotReloadCallback callback) {
+    public static void hotReloadModule(@NonNull HookedProcess process, @Nullable Bundle data, @NonNull HotReloadCallback callback) {
         callService(
                 14,
                 datax -> {
-                    datax.writeLong(target.mTargetId);
+                    datax.writeLong(process.getTargetId());
                     datax.writeTypedObject(data, 0);
                     datax.writeStrongInterface(callback);
                 },
-                reply -> reply.createTypedArrayList(HookedProcess.CREATOR),
+                Function.identity(),
                 0
         );
     }
