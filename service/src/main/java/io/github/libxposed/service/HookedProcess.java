@@ -34,7 +34,7 @@ public class HookedProcess implements Parcelable {
      */
     private int mUid = 0;
     /**
-     * The process id, provided for display and diagnostics. It must not be used as target identity.
+     * The process id, provided for display and diagnostics. It must not be used as process identity.
      */
     private int mPid = 0;
     /**
@@ -42,7 +42,7 @@ public class HookedProcess implements Parcelable {
      */
     private String mProcessName;
     /**
-     * One of TARGET_STATE_*.
+     * The process state
      */
     private State mState;
     /**
@@ -52,26 +52,26 @@ public class HookedProcess implements Parcelable {
     private long mLoadedVersionCode = 0;
 
     /**
-     * State of a hooked target.
+     * State of a hooked process.
      */
     public enum State {
         /**
-         * The target is running the currently installed module code.
+         * The process is running the currently installed module code.
          */
         UP_TO_DATE,
 
         /**
-         * The target is still running old module code and may be hot-reloaded.
+         * The process is still running old module code and may be hot-reloaded.
          */
         STALE,
 
         /**
-         * The target is currently being hot-reloaded.
+         * The process is currently being hot-reloaded.
          */
         RELOADING,
 
         /**
-         * The target's last hot reload attempt failed because the old module refused reload or
+         * The process's last hot reload attempt failed because the old module refused reload or
          * reload raised an exception.
          */
         FAILED
@@ -93,7 +93,7 @@ public class HookedProcess implements Parcelable {
 
     /**
      * Gets the process id, provided for display and diagnostics.
-     * It must not be used as target identity.
+     * It must not be used as process identity.
      */
     public int getPid() {
         return mPid;
@@ -108,7 +108,7 @@ public class HookedProcess implements Parcelable {
     }
 
     /**
-     * Gets the target state.
+     * Gets the process state.
      */
     @NonNull
     public State getState() {

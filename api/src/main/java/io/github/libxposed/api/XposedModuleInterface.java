@@ -250,7 +250,7 @@ public interface XposedModuleInterface {
      * returns {@code true}.
      * <p>This callback runs in <b>old</b> code.</p>
      * <p>
-     * Hot reloads are serialized per target. Before the old hook handle list is captured, the
+     * Hot reloads are serialized per process. Before the old hook handle list is captured, the
      * framework freezes old code so further hook registrations from old code fail. In-flight hook
      * calls keep using the hook chain snapshot that was active when they started.
      * </p>

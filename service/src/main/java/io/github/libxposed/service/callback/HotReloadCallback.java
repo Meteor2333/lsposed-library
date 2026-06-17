@@ -75,22 +75,22 @@ public class HotReloadCallback implements IInterface {
         FAILED,
 
         /**
-         * The target does not support hot reload.
+         * The process does not support hot reload.
          * <p>
          * For example, this can be returned for modules that do not declare exactly one Java
-         * entry class or targets for which the framework cannot provide a valid new module
+         * entry class or processes for which the framework cannot provide a valid new module
          * generation.
          * </p>
          */
         UNSUPPORTED,
 
         /**
-         * The target is already being hot-reloaded.
+         * The process is already being hot-reloaded.
          */
         IN_PROGRESS,
 
         /**
-         * The target process died before hot reload could complete.
+         * The process died before hot reload could complete.
          */
         PROCESS_DIED
     }

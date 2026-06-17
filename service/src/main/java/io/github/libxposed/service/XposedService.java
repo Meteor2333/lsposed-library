@@ -138,7 +138,7 @@ public final class XposedService {
     /**
      * Get a list of currently running processes that are hooked by the module.
      * <p>
-     * Returned targets can be passed to
+     * Returned processes can be passed to
      * {@link #hotReloadModule(HookedProcess, Bundle, HotReloadCallback)}. The pid, uid, process
      * name, and loaded version code are diagnostic values only.
      * </p>
@@ -160,11 +160,11 @@ public final class XposedService {
 
     /**
      * Request hot reload for the module in the specified process. The process must be one of the
-     * targets returned by {@link #getRunningProcesses()}.
+     * processes returned by {@link #getRunningProcesses()}.
      * <p>
      * This method only validates and submits the request. The actual reload result is delivered
      * asynchronously through {@code callback}. If the framework cannot provide a valid new module
-     * generation for the target, the callback receives {@link HotReloadCallback.Status#UNSUPPORTED}.
+     * generation for the process, the callback receives {@link HotReloadCallback.Status#UNSUPPORTED}.
      * </p>
      * <p>
      * If the old module rejects reload by returning {@code false} from {@code onHotReloading},
@@ -188,7 +188,7 @@ public final class XposedService {
      * @param data     Optional data to be passed to the old module
      * @param callback Callback to be invoked when the request completes or fails
      * @throws ServiceException  If the service is dead or an error occurred
-     * @throws SecurityException If the target is invalid or no longer belongs to this module
+     * @throws SecurityException If the process is invalid or no longer belongs to this module
      */
     @SinceApi(102)
     public static void hotReloadModule(@NonNull HookedProcess process, @Nullable Bundle data, @NonNull HotReloadCallback callback) {
