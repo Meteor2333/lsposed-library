@@ -9,14 +9,12 @@ import android.os.RemoteException;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import io.github.libxposed.annotation.SinceApi;
 import io.github.libxposed.service.Constants;
 import io.github.libxposed.service.exception.ServiceException;
 
 /**
  * Callback interface for hot reload requests.
  */
-@SinceApi(102)
 public class HotReloadCallback implements IInterface {
     private static final int TRANSACTION_RESULT = 1 + 1;
 
