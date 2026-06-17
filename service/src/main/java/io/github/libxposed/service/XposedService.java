@@ -370,6 +370,10 @@ public final class XposedService {
     }
 
     private static <T> T callService(int code, Consumer<Parcel> writer, Function<Parcel, T> reader, int flags) {
+        if (!isAvailable()) {
+            throw new ServiceException("Xposed service is not available");
+        }
+
         Parcel data = Parcel.obtain();
         Parcel reply = Parcel.obtain();
         try {
