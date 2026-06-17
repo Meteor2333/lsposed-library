@@ -15,20 +15,18 @@ import kotlin.random.Random
 class MainActivity : Activity() {
     private lateinit var binding: ActivityMainBinding
 
-    private val mHotReloadCallback = if (XposedService.getApiVersion() >= 102) {
-        object : HotReloadCallback() {
-            override fun onResult(status: Status, message: String?) {
-                runOnUiThread {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "$status, $message",
-                        Toast.LENGTH_LONG
-                    ).show()
-                    refreshRunningProcesses()
-                }
+    private val mHotReloadCallback = object : HotReloadCallback() {
+        override fun onResult(status: Status, message: String?) {
+            runOnUiThread {
+                Toast.makeText(
+                    this@MainActivity,
+                    "$status, $message",
+                    Toast.LENGTH_LONG
+                ).show()
+                refreshRunningProcesses()
             }
         }
-    } else null
+    }
     private val mScopeEventCallback = object : ScopeEventCallback() {
         override fun onPrompted(packageName: String) {
             onCallback("onPrompted\n$packageName")
@@ -78,7 +76,7 @@ class MainActivity : Activity() {
             }
 
             XposedService.getRunningTargets().forEach {
-                XposedService.hotReloadModule(it, null, mHotReloadCallback!!)
+                XposedService.hotReloadModule(it, null, mHotReloadCallback)
             }
         }
         binding.requestScope.setOnClickListener {
