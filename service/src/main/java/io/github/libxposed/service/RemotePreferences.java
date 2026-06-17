@@ -3,13 +3,16 @@ package io.github.libxposed.service;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import io.github.libxposed.service.callback.ServiceLifecycleCallback;
 import io.github.libxposed.service.exception.ServiceException;
+import io.github.libxposed.service.provider.XposedProvider;
 
 @SuppressWarnings({"DataFlowIssue", "unchecked"})
 class RemotePreferences implements SharedPreferences {
@@ -103,20 +106,14 @@ class RemotePreferences implements SharedPreferences {
         public void apply() {
             updateMemory();
             triggerListeners();
-            EXECUTOR.execute(() -> XposedService.updateRemotePreferences(mPrefs.mGroup, this));
+            EXECUTOR.execute(this::updateRemote);
         }
 
         @Override
         public boolean commit() {
             updateMemory();
             triggerListeners();
-            try {
-                XposedService.updateRemotePreferences(mPrefs.mGroup, this);
-                return true;
-            } catch (ServiceException e) {
-                Log.e(TAG, "Failed to commit changes to framework", e);
-                return false;
-            }
+            return updateRemote();
         }
 
         private void updateMemory() {
@@ -138,6 +135,38 @@ class RemotePreferences implements SharedPreferences {
                         listener.onSharedPreferenceChanged(mPrefs, change);
                     }
                 }
+            }
+        }
+
+        private boolean updateRemote() throws ServiceException {
+            Optional<XposedService> service = XposedProvider.getServiceIfAvailable();
+            if (service.isPresent()) {
+                return updateRemoteInternal(service.get());
+            } else {
+                // If the service is not available, can delay the update until it becomes available.
+                XposedProvider.registerLifecycleListener(new ServiceLifecycleCallback() {
+                    @Override
+                    public void onServiceBind(@NonNull XposedService service) {
+                        XposedProvider.unregisterLifecycleListener(this);
+                        updateRemoteInternal(service);
+                    }
+
+                    @Override
+                    public void onServiceDied() {
+                        XposedProvider.unregisterLifecycleListener(this);
+                    }
+                });
+                return true;
+            }
+        }
+
+        private boolean updateRemoteInternal(XposedService service) throws ServiceException {
+            try {
+                service.updateRemotePreferences(mPrefs.mGroup, this);
+                return true;
+            } catch (ServiceException e) {
+                Log.e(TAG, "Failed to commit changes to framework", e);
+                return false;
             }
         }
 

@@ -229,8 +229,15 @@ public final class XposedService {
     public void updateRemotePreferences(@NonNull String group, @NonNull SharedPreferences.Editor editor) {
         if (!(editor instanceof RemotePreferences.Editor remoteEditor)) return;
         Bundle bundle = new Bundle();
-        bundle.putSerializable("delete", new HashSet<>(remoteEditor.mDelete));
-        bundle.putSerializable("put", new HashMap<>(remoteEditor.mPut));
+
+        Set<String> delete = remoteEditor.mDelete;
+        bundle.putSerializable("delete", new HashSet<>(delete));
+        delete.clear();
+
+        Map<String, Object> put = remoteEditor.mPut;
+        bundle.putSerializable("put", new HashMap<>(put));
+        put.clear();
+
         callService(
                 21,
                 data -> {

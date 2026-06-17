@@ -1,5 +1,8 @@
 package io.github.libxposed.service;
 
+import io.github.libxposed.annotation.InternalApi;
+
+@InternalApi
 public final class Constants {
     public static String SEND_BINDER_METHOD = "SendBinder";
     public static String SERVICE_AIDL_DESCRIPTOR = "io.github.libxposed.service.IXposedService";
