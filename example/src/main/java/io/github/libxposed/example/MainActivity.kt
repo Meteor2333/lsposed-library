@@ -157,6 +157,7 @@ class MainActivity : Activity() {
                 Toast.LENGTH_SHORT
             ).show()
         }.onFailure {
+            it.printStackTrace()
             Toast.makeText(
                 this@MainActivity,
                 "Failure",
