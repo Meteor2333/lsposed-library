@@ -80,6 +80,15 @@ public interface XposedModuleInterface {
         boolean isFirstPackage();
 
         /**
+         * Get the class loader of the package being loaded.
+         *
+         * @return The class loader.
+         */
+        @NonNull
+        @Deprecated
+        ClassLoader getClassLoader();
+
+        /**
          * Get default class loader.
          *
          * @return the default class loader
@@ -112,8 +121,23 @@ public interface XposedModuleInterface {
 
     /**
      * Wraps information about system server.
+     */
+    @Deprecated
+    interface SystemServerLoadedParam {
+        /**
+         * Get the class loader of system server.
+         *
+         * @return The class loader
+         */
+        @NonNull
+        ClassLoader getClassLoader();
+    }
+
+    /**
+     * Wraps information about system server.
      * This information only indicates the state at the time of loading and will not be updated.
      */
+    @SinceApi(101)
     interface SystemServerStartingParam {
         /**
          * Get the class loader of system server.
@@ -231,6 +255,16 @@ public interface XposedModuleInterface {
     }
 
     /**
+     * Get notified when the system server is loaded.
+     *
+     * @param param Information about system server
+     */
+    @Deprecated
+    default void onSystemServerLoaded(@NonNull SystemServerLoadedParam param) {
+
+    }
+
+    /**
      * Gets notified when system server is ready to start critical services.
      * In system server, this callback replaces the first callback phase of
      * {@link #onPackageLoaded(PackageLoadedParam)} and
@@ -239,6 +273,7 @@ public interface XposedModuleInterface {
      * @param param Information about system server
      * @throws RuntimeException Everything the callback throws is caught and logged.
      */
+    @SinceApi(101)
     default void onSystemServerStarting(@NonNull SystemServerStartingParam param) {
 
     }

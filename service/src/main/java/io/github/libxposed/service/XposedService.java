@@ -1,6 +1,5 @@
 package io.github.libxposed.service;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.*;
 
@@ -90,20 +89,20 @@ public final class XposedService {
     /**
      * Request to add a new app to the module scope.
      *
-     * @param packages Packages to be added
+     * @param packageName Package to be added
      * @param callback Callback to be invoked when the request is completed or error occurred
      * @throws ServiceException If the service is dead or an error occurred
      */
-    public void requestScope(@NonNull String packages, @NonNull ScopeEventCallback callback) {
+    public void requestScope(@NonNull String packageName, @NonNull ScopeEventCallback callback) {
         Consumer<Parcel> writer;
         if (getApiVersion() > 100) {
             writer = data -> {
-                data.writeStringList(Collections.singletonList(packages));
+                data.writeStringList(Collections.singletonList(packageName));
                 data.writeStrongInterface(callback);
             };
         } else {
             writer = data -> {
-                data.writeString(packages);
+                data.writeString(packageName);
                 data.writeStrongInterface(callback);
             };
         }
@@ -114,15 +113,15 @@ public final class XposedService {
     /**
      * Remove an app from the module scope.
      *
-     * @param packages Packages to be removed
+     * @param packageName Package to be removed
      * @throws ServiceException If the service is dead or an error occurred
      */
-    public void removeScope(@NonNull String packages) {
+    public void removeScope(@NonNull String packageName) {
         Consumer<Parcel> writer;
         if (getApiVersion() > 100) {
-            writer = data -> data.writeStringList(Collections.singletonList(packages));
+            writer = data -> data.writeStringList(Collections.singletonList(packageName));
         } else {
-            writer = data -> data.writeString(packages);
+            writer = data -> data.writeString(packageName);
         }
 
         callService(12, writer, Function.identity(), 0);
@@ -306,7 +305,7 @@ public final class XposedService {
                 data -> {
                     data.writeString(name);
                     // for api100
-                    data.writeInt(Context.MODE_PRIVATE);
+                    data.writeInt(ParcelFileDescriptor.MODE_CREATE | ParcelFileDescriptor.MODE_READ_WRITE);
                 },
                 reply -> reply.readTypedObject(ParcelFileDescriptor.CREATOR),
                 0
