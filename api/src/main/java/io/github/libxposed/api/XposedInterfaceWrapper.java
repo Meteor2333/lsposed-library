@@ -5,14 +5,12 @@ import android.content.pm.ApplicationInfo;
 import android.os.ParcelFileDescriptor;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.io.FileInputStream;
 
-import io.github.libxposed.annotation.SinceApi;
-
 public class XposedInterfaceWrapper implements XposedInterface {
     @Override
-    @SinceApi(101)
     public int getApiVersion() {
         throw new UnsupportedOperationException();
     }
@@ -35,7 +33,27 @@ public class XposedInterfaceWrapper implements XposedInterface {
     }
 
     @Override
-    @Deprecated
+    public void log(@NonNull String message) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void log(int priority, @Nullable String tag, @NonNull String msg) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void log(@NonNull String message, @NonNull Throwable throwable) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void log(int priority, @Nullable String tag, @NonNull String msg, @Nullable Throwable tr) {
+        throw new UnsupportedOperationException();
+    }
+
+    @NonNull
+    @Override
     public ApplicationInfo getApplicationInfo() {
         throw new UnsupportedOperationException();
     }
@@ -46,20 +64,20 @@ public class XposedInterfaceWrapper implements XposedInterface {
         throw new UnsupportedOperationException();
     }
 
+    @NonNull
     @Override
-    @Deprecated
-    public SharedPreferences getSharedPreferences(String name, int mode) {
+    public SharedPreferences getSharedPreferences(@NonNull String name, int mode) {
         throw new UnsupportedOperationException();
     }
 
     @NonNull
     @Override
-    public SharedPreferences getRemotePreferences(String group) {
+    public SharedPreferences getRemotePreferences(@NonNull String group) {
         throw new UnsupportedOperationException();
     }
 
+    @NonNull
     @Override
-    @Deprecated
     public String[] fileList() {
         throw new UnsupportedOperationException();
     }
@@ -70,8 +88,8 @@ public class XposedInterfaceWrapper implements XposedInterface {
         throw new UnsupportedOperationException();
     }
 
+    @NonNull
     @Override
-    @Deprecated
     public FileInputStream openFileInput(String name) {
         throw new UnsupportedOperationException();
     }
@@ -83,7 +101,6 @@ public class XposedInterfaceWrapper implements XposedInterface {
     }
 
     @Override
-    @SinceApi(102)
     public void detach() {
         throw new UnsupportedOperationException();
     }

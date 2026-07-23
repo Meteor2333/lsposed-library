@@ -5,6 +5,7 @@ import android.content.pm.ApplicationInfo;
 import android.os.ParcelFileDescriptor;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -15,6 +16,12 @@ import io.github.libxposed.annotation.SinceApi;
  * Xposed interface for modules to operate on application processes.
  */
 public interface XposedInterface {
+    /**
+     * SDK API version.
+     */
+    @Deprecated
+    int API = 100;
+
     /**
      * Gets the runtime Xposed API version. Framework implementations <b>must not</b> override this method.
      */
@@ -39,15 +46,49 @@ public interface XposedInterface {
     long getFrameworkVersionCode();
 
     /**
-     * Gets application info.
+     * Log.
      *
-     * @deprecated This method is not recommended to use.
-     * Although it exists, it was rarely implemented in official framework releases,
-     * so its lifecycle was very short.
-     * <p>Use {@link #getModuleApplicationInfo()} instead.
+     * @param message the message
+     */
+    @Deprecated
+    void log(@NonNull String message);
+
+    /**
+     * Writes a message to the Xposed log.
+     *
+     * @param priority The log priority, see {@link android.util.Log}
+     * @param tag      The log tag
+     * @param msg      The log message
+     */
+    @SinceApi(101)
+    void log(int priority, @Nullable String tag, @NonNull String msg);
+
+    /**
+     * Log.
+     *
+     * @param message   the message
+     * @param throwable the throwable
+     */
+    @Deprecated
+    void log(@NonNull String message, @NonNull Throwable throwable);
+
+    /**
+     * Writes a message to the Xposed log.
+     *
+     * @param priority The log priority, see {@link android.util.Log}
+     * @param tag      The log tag
+     * @param msg      The log message
+     * @param tr       An exception to log
+     */
+    @SinceApi(101)
+    void log(int priority, @Nullable String tag, @NonNull String msg, @Nullable Throwable tr);
+
+    /**
+     * Gets application info.
      *
      * @return the application info
      */
+    @NonNull
     @Deprecated
     ApplicationInfo getApplicationInfo();
 
@@ -55,43 +96,37 @@ public interface XposedInterface {
      * Gets the application info of the module.
      */
     @NonNull
+    @SinceApi(101)
     ApplicationInfo getModuleApplicationInfo();
 
     /**
-     * Get shared preferences.
-     *
-     * @deprecated This method is not recommended to use.
-     * Although it exists, it was rarely implemented in official framework releases,
-     * so its lifecycle was very short.
-     * <p>Use {@link #getRemotePreferences(String)} instead.
+     * Gets shared preferences.
      *
      * @param name the name
      * @param mode the mode
      * @return the shared preferences
      */
+    @NonNull
     @Deprecated
-    SharedPreferences getSharedPreferences(String name, int mode);
+    SharedPreferences getSharedPreferences(@NonNull String name, int mode);
 
     /**
-     * Get remote preferences stored in Xposed framework. Note that those are read-only in hooked apps.
+     * Gets remote preferences stored in Xposed framework. Note that those are read-only in hooked apps.
      *
      * @param group Group name
      * @return The preferences
      * @throws UnsupportedOperationException If the framework is embedded
      */
     @NonNull
-    SharedPreferences getRemotePreferences(String group);
+    @SinceApi(101)
+    SharedPreferences getRemotePreferences(@NonNull String group);
 
     /**
      * File list string [ ].
      *
-     * @deprecated This method is not recommended to use.
-     * Although it exists, it was rarely implemented in official framework releases,
-     * so its lifecycle was very short.
-     * <p>Use {@link #listRemoteFiles()} instead.
-     *
      * @return the string [ ]
      */
+    @NonNull
     @Deprecated
     String[] fileList();
 
@@ -102,20 +137,17 @@ public interface XposedInterface {
      * @throws UnsupportedOperationException If the framework is embedded
      */
     @NonNull
+    @SinceApi(101)
     String[] listRemoteFiles();
 
     /**
      * Open file input file input stream.
      *
-     * @deprecated This method is not recommended to use.
-     * Although it exists, it was rarely implemented in official framework releases,
-     * so its lifecycle was very short.
-     * <p>Use {@link #openRemoteFile(String)} instead.
-     *
      * @param name the name
      * @return the file input stream
      * @throws FileNotFoundException the file not found exception
      */
+    @NonNull
     @Deprecated
     FileInputStream openFileInput(String name) throws FileNotFoundException;
 
@@ -128,6 +160,7 @@ public interface XposedInterface {
      * @throws UnsupportedOperationException If the framework is embedded
      */
     @NonNull
+    @SinceApi(101)
     ParcelFileDescriptor openRemoteFile(@NonNull String name) throws FileNotFoundException;
 
     /**
